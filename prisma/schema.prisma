@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Auth.js required models
+model User {
+  id            String        @id @default(cuid())
+  name          String?
+  email         String?       @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  applications  Application[]
+  createdAt     DateTime      @default(now())
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Application models
+model Manager {
+  id        String   @id @default(cuid())
+  discordId String   @unique
+  addedAt   DateTime @default(now())
+
+  @@map("managers")
+}
+
+model Job {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  department      String
+  description     String   @db.Text
+  requirements    String   @db.Text
+  responsibilities String  @db.Text
+  tags            String[]
+  location        String   @default("remote")
+  isPublished     Boolean  @default(false)
+  isDraft         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  applications    Application[]
+  customQuestions CustomQuestion[]
+
+  @@map("jobs")
+}
+
+model CustomQuestion {
+  id     String @id @default(cuid())
+  jobId  String
+  question String
+  type   String @default("text")
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("custom_questions")
+}
+
+model Application {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId         String
+  job           Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  githubUsername String?
+  portfolioUrl  String?
+  resumeUrl     String?
+  coverLetter   String?            @db.Text
+  status        ApplicationStatus @default(PENDING)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  answers       ApplicationAnswer[]
+
+  @@unique([userId, jobId])
+  @@map("applications")
+}
+
+model ApplicationAnswer {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  questionId    String
+  answer        String      @db.Text
+
+  @@map("application_answers")
+}
+
+model Organization {
+  id              String  @id @default(cuid())
+  name            String  @default("Hyreli")
+  description     String?
+  website         String?
+  githubRepo      String?
+  discordServer   String?
+  logoUrl         String?
+  primaryColor    String  @default("#FBA53B")
+  careersUrl      String?
+  defaultTheme    String  @default("system")
+
+  @@map("organizations")
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+
+  @@map("settings")
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+}
