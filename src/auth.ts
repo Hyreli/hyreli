@@ -16,11 +16,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = user.id;
 
-        const manager = await prisma.manager.findUnique({
-          where: { discordId: user.id },
+        const account = await prisma.account.findFirst({
+          where: { userId: user.id, provider: "discord" },
         });
 
-        const isOwner = user.id === process.env.OWNER_DISCORD_ID;
+        const discordId = account?.providerAccountId;
+
+        const manager = discordId
+          ? await prisma.manager.findUnique({
+              where: { discordId },
+            })
+          : null;
+
+        const isOwner = discordId === process.env.OWNER_DISCORD_ID;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).role = isOwner

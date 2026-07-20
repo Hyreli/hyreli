@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { useToast } from "@/components/toast";
 
 const applicationSchema = z.object({
   githubUsername: z.string().min(1, "GitHub username is required"),
@@ -50,6 +51,7 @@ export default function ApplyPage({
   const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jobId, setJobId] = useState<string>("");
+  const { toast } = useToast();
 
   const {
     register,
@@ -126,13 +128,13 @@ export default function ApplyPage({
       });
 
       if (res.ok) {
-        router.push("/careers/success");
+        router.push("/success");
       } else {
         const err = await res.json();
-        alert(err.error || "Failed to submit application");
+        toast(err.error || "Failed to submit application", "error");
       }
     } catch {
-      alert("Failed to submit application");
+      toast("Failed to submit application", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -145,7 +147,7 @@ export default function ApplyPage({
       <main className="flex-1">
         <div className="mx-auto max-w-2xl px-6 py-12">
           <Link
-            href={`/careers`}
+            href="/"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="size-4" />

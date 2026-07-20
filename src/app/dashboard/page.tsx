@@ -13,7 +13,6 @@ import {
   Plus,
   ExternalLink,
   Users,
-  Settings,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -134,12 +133,6 @@ export default async function DashboardPage() {
             </Button>
           </Link>
         )}
-        <Link href="/dashboard/settings">
-          <Button variant="outline" className="gap-2">
-            <Settings className="size-4" />
-            Settings
-          </Button>
-        </Link>
       </div>
 
       {/* Recent Jobs */}

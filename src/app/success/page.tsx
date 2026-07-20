@@ -20,7 +20,7 @@ export default function SuccessPage() {
             <p className="text-muted-foreground mb-8">
               Thank you for your interest! We&apos;ll review your application and get back to you soon.
             </p>
-            <Link href="/careers">
+            <Link href="/">
               <Button variant="outline" className="gap-2">
                 <ArrowLeft className="size-4" />
                 Back to Careers

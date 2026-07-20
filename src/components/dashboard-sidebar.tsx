@@ -17,7 +17,6 @@ import {
   Briefcase,
   FileText,
   Users,
-  Settings,
   ExternalLink,
   Menu,
   X,
@@ -49,11 +48,6 @@ const navItems = [
     href: "/dashboard/managers",
     icon: Users,
     ownerOnly: true,
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
   },
 ];
 

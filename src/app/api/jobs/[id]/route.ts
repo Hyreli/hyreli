@@ -29,7 +29,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, slug, department, description, requirements, responsibilities, tags, location, isPublished, isDraft, customQuestions } = body;
+    const { title, slug, description, requirements, isPublished, isDraft, customQuestions } = body;
 
     if (slug) {
       const existing = await prisma.job.findFirst({
@@ -45,12 +45,8 @@ export async function PUT(
       data: {
         ...(title && { title }),
         ...(slug && { slug }),
-        ...(department && { department }),
         ...(description && { description }),
         ...(requirements && { requirements }),
-        ...(responsibilities && { responsibilities }),
-        ...(tags && { tags }),
-        ...(location && { location }),
         ...(isPublished !== undefined && { isPublished }),
         ...(isDraft !== undefined && { isDraft }),
       },

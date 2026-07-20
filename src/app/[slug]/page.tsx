@@ -53,7 +53,7 @@ export default async function JobPage({
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-6 py-12">
           <Link
-            href="/careers"
+            href="/"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="size-4" />
@@ -118,7 +118,7 @@ export default async function JobPage({
           </div>
 
           <div className="mt-8 rounded-xl border bg-card p-6">
-            <Link href={`/careers/apply/${job.id}`}>
+            <Link href={`/apply/${job.id}`}>
               <Button size="lg" className="w-full gap-2">
                 Apply for this position
               </Button>

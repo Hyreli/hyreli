@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, slug, department, description, requirements, responsibilities, tags, location, isPublished, isDraft, customQuestions } = body;
+    const { title, slug, description, requirements, isPublished, isDraft, customQuestions } = body;
 
-    if (!title || !slug || !department || !description || !requirements || !responsibilities) {
+    if (!title || !slug || !description || !requirements) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -42,17 +42,13 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         slug,
-        department,
         description,
         requirements,
-        responsibilities,
-        tags: tags || [],
-        location: location || "remote",
         isPublished: isPublished || false,
         isDraft: isDraft !== undefined ? isDraft : true,
         customQuestions: customQuestions?.length
           ? {
-              create: customQuestions.map((q: { question: string; type?: string }) => ({
+              create: customQuestions.map((q: { question: string; type: string; required: boolean; options: string[] }) => ({
                 question: q.question,
                 type: q.type || "text",
               })),

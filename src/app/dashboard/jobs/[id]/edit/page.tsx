@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -20,33 +19,49 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/components/toast";
 
 const jobSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
-  department: z.string().min(1, "Department is required"),
   description: z.string().min(1, "Description is required"),
   requirements: z.string().min(1, "Requirements are required"),
-  responsibilities: z.string().min(1, "Responsibilities are required"),
-  location: z.string().default("remote"),
   isPublished: z.boolean().default(false),
   isDraft: z.boolean().default(true),
 });
+
+interface CustomQuestion {
+  id: string;
+  question: string;
+  type: string;
+  required: boolean;
+  options: string[];
+}
 
 interface Job {
   id: string;
   title: string;
   slug: string;
-  department: string;
   description: string;
   requirements: string;
-  responsibilities: string;
-  tags: string[];
-  location: string;
   isPublished: boolean;
   isDraft: boolean;
-  customQuestions: Array<{ id: string; question: string; type: string }>;
+  customQuestions: CustomQuestion[];
 }
+
+const questionTypes = [
+  { value: "text", label: "Short Answer" },
+  { value: "textarea", label: "Paragraph" },
+  { value: "multiple-choice", label: "Multiple Choice" },
+  { value: "checkboxes", label: "Checkboxes" },
+  { value: "dropdown", label: "Dropdown" },
+  { value: "file", label: "File Upload" },
+  { value: "date", label: "Date" },
+  { value: "email", label: "Email" },
+  { value: "url", label: "URL" },
+  { value: "number", label: "Number" },
+  { value: "phone", label: "Phone Number" },
+];
 
 export default function EditJobPage({
   params,
@@ -57,15 +72,13 @@ export default function EditJobPage({
   const [jobId, setJobId] = useState<string>("");
   const [job, setJob] = useState<Job | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-  const [customQuestions, setCustomQuestions] = useState<string[]>([]);
+  const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const {
     register,
     handleSubmit,
-    setValue,
     reset,
     formState: { errors },
   } = useForm<z.input<typeof jobSchema>>({
@@ -79,18 +92,12 @@ export default function EditJobPage({
         .then((res) => res.json())
         .then((data: Job) => {
           setJob(data);
-          setTags(data.tags || []);
-          setCustomQuestions(
-            data.customQuestions?.map((q) => q.question) || []
-          );
+          setCustomQuestions(data.customQuestions || []);
           reset({
             title: data.title,
             slug: data.slug,
-            department: data.department,
             description: data.description,
             requirements: data.requirements,
-            responsibilities: data.responsibilities,
-            location: data.location,
             isPublished: data.isPublished,
             isDraft: data.isDraft,
           });
@@ -100,16 +107,45 @@ export default function EditJobPage({
     });
   }, [params, reset]);
 
-  const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput("");
-    }
+  const addQuestion = () => {
+    setCustomQuestions([
+      ...customQuestions,
+      { id: "", question: "", type: "text", required: false, options: [] },
+    ]);
   };
 
-  const removeTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
+  const removeQuestion = (index: number) => {
+    setCustomQuestions(customQuestions.filter((_, i) => i !== index));
   };
+
+  const updateQuestion = (index: number, field: keyof CustomQuestion, value: unknown) => {
+    const updated = [...customQuestions];
+    updated[index] = { ...updated[index], [field]: value };
+    setCustomQuestions(updated);
+  };
+
+  const addOption = (questionIndex: number) => {
+    const updated = [...customQuestions];
+    updated[questionIndex].options.push("");
+    setCustomQuestions(updated);
+  };
+
+  const updateOption = (questionIndex: number, optionIndex: number, value: string) => {
+    const updated = [...customQuestions];
+    updated[questionIndex].options[optionIndex] = value;
+    setCustomQuestions(updated);
+  };
+
+  const removeOption = (questionIndex: number, optionIndex: number) => {
+    const updated = [...customQuestions];
+    updated[questionIndex].options = updated[questionIndex].options.filter(
+      (_, i) => i !== optionIndex
+    );
+    setCustomQuestions(updated);
+  };
+
+  const needsOptions = (type: string) =>
+    ["multiple-choice", "checkboxes", "dropdown"].includes(type);
 
   const onSubmit = async (data: z.input<typeof jobSchema>) => {
     setIsSubmitting(true);
@@ -119,21 +155,19 @@ export default function EditJobPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          tags,
-          customQuestions: customQuestions
-            .filter((q) => q.trim())
-            .map((q) => ({ question: q })),
+          customQuestions: customQuestions.filter((q) => q.question.trim()),
         }),
       });
 
       if (res.ok) {
+        toast("Job updated successfully", "success");
         router.push("/dashboard/jobs");
       } else {
         const err = await res.json();
-        alert(err.error || "Failed to update job");
+        toast(err.error || "Failed to update job", "error");
       }
     } catch {
-      alert("Failed to update job");
+      toast("Failed to update job", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -155,9 +189,10 @@ export default function EditJobPage({
         setJob((prev) =>
           prev ? { ...prev, isPublished: publish, isDraft: !publish } : prev
         );
+        toast(publish ? "Job published" : "Applications closed", "success");
       }
     } catch {
-      // ignore
+      toast("Failed to update job", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -208,7 +243,7 @@ export default function EditJobPage({
               Open Applications
             </Button>
           )}
-          <a href={`/careers/${job.slug}`} target="_blank">
+          <a href={`/${job.slug}`} target="_blank">
             <Button variant="outline" size="sm">
               View
             </Button>
@@ -235,71 +270,6 @@ export default function EditJobPage({
                   <p className="text-sm text-destructive">{errors.slug.message}</p>
                 )}
               </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="department">Department *</Label>
-                <Input id="department" {...register("department")} />
-                {errors.department && (
-                  <p className="text-sm text-destructive">
-                    {errors.department.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Location</Label>
-                <Select
-                  defaultValue={job.location}
-                  onValueChange={(v) => v && setValue("location", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="remote">Remote</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
-                    <SelectItem value="onsite">On-site</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tags</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add a tag"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addTag();
-                    }
-                  }}
-                />
-                <Button type="button" variant="outline" onClick={addTag}>
-                  Add
-                </Button>
-              </div>
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="gap-1">
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tag)}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -333,60 +303,121 @@ export default function EditJobPage({
                 </p>
               )}
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="responsibilities">Responsibilities *</Label>
-              <Textarea
-                id="responsibilities"
-                rows={6}
-                {...register("responsibilities")}
-              />
-              {errors.responsibilities && (
-                <p className="text-sm text-destructive">
-                  {errors.responsibilities.message}
-                </p>
-              )}
-            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="space-y-4 p-6">
-            <div className="space-y-2">
-              <Label>Custom Questions</Label>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Custom Questions</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={addQuestion}
+                >
+                  <Plus className="size-3.5" />
+                  Add Question
+                </Button>
+              </div>
+
               {customQuestions.map((q, i) => (
-                <div key={i} className="flex gap-2">
-                  <Input
-                    placeholder={`Question ${i + 1}`}
-                    value={q}
-                    onChange={(e) => {
-                      const updated = [...customQuestions];
-                      updated[i] = e.target.value;
-                      setCustomQuestions(updated);
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() =>
-                      setCustomQuestions(customQuestions.filter((_, j) => j !== i))
-                    }
-                  >
-                    <X className="size-4" />
-                  </Button>
+                <div key={q.id || i} className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-3">
+                      <Input
+                        placeholder="Question"
+                        value={q.question}
+                        onChange={(e) => updateQuestion(i, "question", e.target.value)}
+                      />
+
+                      <div className="flex gap-2">
+                        <Select
+                          value={q.type}
+                          onValueChange={(v) => {
+                            updateQuestion(i, "type", v);
+                            if (!needsOptions(v)) {
+                              updateQuestion(i, "options", []);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {questionTypes.map((t) => (
+                              <SelectItem key={t.value} value={t.value}>
+                                {t.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={q.required}
+                            onChange={(e) =>
+                              updateQuestion(i, "required", e.target.checked)
+                            }
+                            className="rounded"
+                          />
+                          Required
+                        </label>
+                      </div>
+
+                      {needsOptions(q.type) && (
+                        <div className="space-y-2">
+                          {q.options.map((opt, j) => (
+                            <div key={j} className="flex gap-2">
+                              <Input
+                                placeholder={`Option ${j + 1}`}
+                                value={opt}
+                                onChange={(e) => updateOption(i, j, e.target.value)}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => removeOption(i, j)}
+                              >
+                                <X className="size-3.5" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => addOption(i)}
+                          >
+                            <Plus className="size-3" />
+                            Add option
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => removeQuestion(i)}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5 mt-2"
-                onClick={() => setCustomQuestions([...customQuestions, ""])}
-              >
-                <Plus className="size-3.5" />
-                Add Question
-              </Button>
+
+              {customQuestions.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No questions yet. Click &quot;Add Question&quot; to start.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

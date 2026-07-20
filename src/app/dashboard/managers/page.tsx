@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export default function ManagersPage() {
   const [discordId, setDiscordId] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const role = (session?.user as Record<string, unknown>)?.role as string;
 
@@ -67,16 +69,17 @@ export default function ManagersPage() {
         body: JSON.stringify({ discordId: discordId.trim() }),
       });
       if (res.ok) {
+        toast("Manager added successfully", "success");
         setDiscordId("");
         setDialogOpen(false);
         const listRes = await fetch("/api/managers");
         if (listRes.ok) setManagers(await listRes.json());
       } else {
         const err = await res.json();
-        alert(err.error || "Failed to add manager");
+        toast(err.error || "Failed to add manager", "error");
       }
     } catch {
-      alert("Failed to add manager");
+      toast("Failed to add manager", "error");
     } finally {
       setIsAdding(false);
     }
@@ -89,6 +92,7 @@ export default function ManagersPage() {
         method: "DELETE",
       });
       if (res.ok) {
+        toast("Manager removed", "success");
         const listRes = await fetch("/api/managers");
         if (listRes.ok) setManagers(await listRes.json());
       }
