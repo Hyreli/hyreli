@@ -24,9 +24,8 @@ A beautiful, open-source careers platform. Self-hostable, Discord-powered, and d
 ## Prerequisites
 
 - Node.js 18+
-- PostgreSQL 14+
+- PostgreSQL 14+ (or a cloud provider like Neon, Supabase, or Vercel Postgres)
 - Discord Application (for OAuth)
-- PM2 (for production)
 
 ## Quick Start
 
@@ -84,15 +83,33 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Production (PM2)
+## Deploy
 
-### 1. Build the app
+### Vercel (Recommended)
+
+1. Fork this repo on GitHub
+2. Go to [vercel.com](https://vercel.com) and import the repo
+3. Add environment variables (see table above)
+4. Add a PostgreSQL database — use [Neon](https://neon.tech), [Supabase](https://supabase.com), or [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
+5. Update `DATABASE_URL` with your cloud database connection string
+6. Deploy — Vercel handles everything automatically
+
+> For Discord OAuth, add `https://your-domain.vercel.app/api/auth/callback/discord` as a redirect in the [Discord Developer Portal](https://discord.com/developers/applications).
+
+### VPS / Server (PM2)
+
+1. Clone and set up the repo on your server
 
 ```bash
+git clone https://github.com/Hyreli/hyreli.git
+cd hyreli
+npm install
+cp .env.example .env  # fill in your values
+npx prisma migrate deploy
 npm run build
 ```
 
-### 2. Start with PM2
+2. Start with PM2
 
 ```bash
 pm2 start ecosystem.config.js
@@ -100,7 +117,7 @@ pm2 save
 pm2 startup
 ```
 
-### 3. Useful PM2 commands
+3. Useful PM2 commands
 
 ```bash
 pm2 status          # Check app status
