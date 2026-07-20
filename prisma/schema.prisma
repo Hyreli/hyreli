@@ -73,11 +73,11 @@ model Job {
   id              String   @id @default(cuid())
   title           String
   slug            String   @unique
-  department      String
+  department      String   @default("")
   description     String   @db.Text
   requirements    String   @db.Text
-  responsibilities String  @db.Text
-  tags            String[]
+  responsibilities String  @default("") @db.Text
+  tags            String[] @default([])
   location        String   @default("remote")
   isPublished     Boolean  @default(false)
   isDraft         Boolean  @default(true)
