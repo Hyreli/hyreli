@@ -105,7 +105,7 @@ npm run build
 2. Start with PM2
 
 ```bash
-pm2 start ecosystem.config.js
+pm2 start npm --name "hyreli" -- run start
 pm2 save
 pm2 startup
 ```
