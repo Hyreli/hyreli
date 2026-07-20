@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ const navItems = [
 function SidebarContent({ role }: { role: string }) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const mounted = useMounted();
 
   const filteredNav = navItems.filter(
@@ -66,7 +66,7 @@ function SidebarContent({ role }: { role: string }) {
       <div className="flex items-center gap-2 px-4 py-4">
         {mounted ? (
           <Image
-            src={theme === "dark" ? "/logo.svg" : "/blacklogo.svg"}
+            src={resolvedTheme === "dark" ? "/logo.svg" : "/blacklogo.svg"}
             alt="Hyreli"
             width={24}
             height={24}

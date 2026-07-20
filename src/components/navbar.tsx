@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { useSession, signOut, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -18,7 +18,7 @@ import { LogOut, LayoutDashboard, ChevronRight } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 
 export function Navbar() {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const { data: session } = useSession();
   const mounted = useMounted();
 
@@ -31,7 +31,7 @@ export function Navbar() {
         <Link href="/careers" className="flex items-center gap-2.5">
           {mounted ? (
             <Image
-              src={theme === "dark" ? "/logo.svg" : "/blacklogo.svg"}
+              src={resolvedTheme === "dark" ? "/logo.svg" : "/blacklogo.svg"}
               alt="Hyreli"
               width={28}
               height={28}
