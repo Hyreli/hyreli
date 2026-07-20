@@ -129,4 +129,8 @@
   html {
     @apply font-sans scroll-smooth;
   }
+  ::selection {
+    background-color: #FBA53B40;
+    color: inherit;
+  }
 }
