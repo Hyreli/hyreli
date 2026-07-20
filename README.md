@@ -85,7 +85,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 ## Deploy
 
 ### Vercel (Recommended)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-id=https://github.com/Hyreli/hyreli)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-id=https://github.com/Hyreli/hyreli&env=DATABASE_URL,AUTH_SECRET,DISCORD_CLIENT_ID,DISCORD_CLIENT_SECRET,OWNER_DISCORD_ID,AUTH_URL&project-name=hyreli)
 
 > For Discord OAuth, add `https://your-domain.vercel.app/api/auth/callback/discord` as a redirect in the [Discord Developer Portal](https://discord.com/developers/applications).
 
