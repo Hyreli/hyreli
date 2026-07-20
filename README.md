@@ -7,8 +7,6 @@
 A beautiful, open-source careers platform. Self-hostable, Discord-powered, and developer-friendly.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-id=https://github.com/Hyreli/hyreli)
-
 </div>
 
 ---
@@ -87,13 +85,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 ## Deploy
 
 ### Vercel (Recommended)
-
-1. Fork this repo on GitHub
-2. Go to [vercel.com](https://vercel.com) and import the repo
-3. Add environment variables (see table above)
-4. Add a PostgreSQL database — use [Neon](https://neon.tech), [Supabase](https://supabase.com), or [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
-5. Update `DATABASE_URL` with your cloud database connection string
-6. Deploy — Vercel handles everything automatically
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-id=https://github.com/Hyreli/hyreli)
 
 > For Discord OAuth, add `https://your-domain.vercel.app/api/auth/callback/discord` as a redirect in the [Discord Developer Portal](https://discord.com/developers/applications).
 
