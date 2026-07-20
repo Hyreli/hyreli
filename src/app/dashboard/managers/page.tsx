@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useToast } from "@/components/toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,6 @@ export default function ManagersPage() {
   const [discordId, setDiscordId] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { toast } = useToast();
 
   const role = (session?.user as Record<string, unknown>)?.role as string;
 

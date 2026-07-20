@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
 import Link from "next/link";
-import { useToast } from "@/components/toast";
+import { toast } from "sonner";
 
 const jobSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -63,7 +63,6 @@ export default function NewJobPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
-  const { toast } = useToast();
 
   const {
     register,

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,7 +39,19 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <Providers>
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider>
+              <Toaster
+                position="bottom-right"
+                toastOptions={{
+                  style: {
+                    background: "#1c1c1c",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "#fff",
+                  },
+                }}
+              />
+              {children}
+            </TooltipProvider>
           </Providers>
         </ThemeProvider>
       </body>

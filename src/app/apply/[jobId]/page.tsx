@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useToast } from "@/components/toast";
+import { toast } from "sonner";
 
 const applicationSchema = z.object({
   githubUsername: z.string().min(1, "GitHub username is required"),
@@ -51,7 +51,6 @@ export default function ApplyPage({
   const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jobId, setJobId] = useState<string>("");
-  const { toast } = useToast();
 
   const {
     register,
