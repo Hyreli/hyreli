@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/logo.svg" alt="Hyreli" width="80" />
+<img src="public/logo_text.svg" alt="Hyreli" width="80" />
 
 # Hyreli
 
