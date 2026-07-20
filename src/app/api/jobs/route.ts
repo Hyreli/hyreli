@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(job, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed to create job" }, { status: 500 });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to create job" }, { status: 500 });
   }
 }

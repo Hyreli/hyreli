@@ -327,10 +327,10 @@ export type JobCreateInput = {
   id?: string
   title: string
   slug: string
-  department: string
+  department?: string
   description: string
   requirements: string
-  responsibilities: string
+  responsibilities?: string
   tags?: Prisma.JobCreatetagsInput | string[]
   location?: string
   isPublished?: boolean
@@ -345,10 +345,10 @@ export type JobUncheckedCreateInput = {
   id?: string
   title: string
   slug: string
-  department: string
+  department?: string
   description: string
   requirements: string
-  responsibilities: string
+  responsibilities?: string
   tags?: Prisma.JobCreatetagsInput | string[]
   location?: string
   isPublished?: boolean
@@ -399,10 +399,10 @@ export type JobCreateManyInput = {
   id?: string
   title: string
   slug: string
-  department: string
+  department?: string
   description: string
   requirements: string
-  responsibilities: string
+  responsibilities?: string
   tags?: Prisma.JobCreatetagsInput | string[]
   location?: string
   isPublished?: boolean
@@ -547,10 +547,10 @@ export type JobCreateWithoutCustomQuestionsInput = {
   id?: string
   title: string
   slug: string
-  department: string
+  department?: string
   description: string
   requirements: string
-  responsibilities: string
+  responsibilities?: string
   tags?: Prisma.JobCreatetagsInput | string[]
   location?: string
   isPublished?: boolean
@@ -564,10 +564,10 @@ export type JobUncheckedCreateWithoutCustomQuestionsInput = {
   id?: string
   title: string
   slug: string
-  department: string
+  department?: string
   description: string
   requirements: string
-  responsibilities: string
+  responsibilities?: string
   tags?: Prisma.JobCreatetagsInput | string[]
   location?: string
   isPublished?: boolean
@@ -631,10 +631,10 @@ export type JobCreateWithoutApplicationsInput = {
   id?: string
   title: string
   slug: string
-  department: string
+  department?: string
   description: string
   requirements: string
-  responsibilities: string
+  responsibilities?: string
   tags?: Prisma.JobCreatetagsInput | string[]
   location?: string
   isPublished?: boolean
@@ -648,10 +648,10 @@ export type JobUncheckedCreateWithoutApplicationsInput = {
   id?: string
   title: string
   slug: string
-  department: string
+  department?: string
   description: string
   requirements: string
-  responsibilities: string
+  responsibilities?: string
   tags?: Prisma.JobCreatetagsInput | string[]
   location?: string
   isPublished?: boolean

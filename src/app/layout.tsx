@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
+import { CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,6 +43,12 @@ export default function RootLayout({
             <TooltipProvider>
               <Toaster
                 position="bottom-right"
+                icons={{
+                  success: <CheckCircle2 className="size-4 text-emerald-500" />,
+                  error: <AlertCircle className="size-4 text-red-500" />,
+                  warning: <AlertTriangle className="size-4 text-amber-500" />,
+                  info: <Info className="size-4 text-blue-500" />,
+                }}
                 toastOptions={{
                   style: {
                     background: "#1c1c1c",
