@@ -133,3 +133,5 @@ pm2 delete hyreli   # Remove app
 ## License
 
 [GNU GPL v3](LICENSE)
+
+## Made with ❤️ in 🇩🇪 by the Hyreli Team
