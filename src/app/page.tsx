@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Clock, ArrowRight } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 async function getJobs() {
   try {
     const jobs = await prisma.job.findMany({

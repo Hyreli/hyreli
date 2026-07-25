@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin, Clock } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 async function getJob(slug: string) {
   try {
     const job = await prisma.job.findUnique({

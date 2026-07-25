@@ -164,7 +164,11 @@ export default async function JobsPage() {
                             "use server";
                             const jobId = formData.get("jobId") as string;
                             if (!jobId) return;
-                            await prisma.job.delete({ where: { id: jobId } });
+                            try {
+                              await prisma.job.delete({ where: { id: jobId } });
+                            } catch {
+                              // ignore
+                            }
                           }}
                         >
                           <input type="hidden" name="jobId" value={job.id} />

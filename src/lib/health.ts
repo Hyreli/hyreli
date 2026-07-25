@@ -17,14 +17,19 @@ export function isConfigured(): boolean {
   return REQUIRED_ENV_VARS.every((key) => !!process.env[key]);
 }
 
+let cachedError: HealthError | null | undefined;
+
 export async function getStartupError(): Promise<HealthError | null> {
+  if (cachedError !== undefined) return cachedError;
+
   if (!isConfigured()) {
-    return {
+    cachedError = {
       type: "config",
       title: "Not configured!",
       message:
         "Hyreli is missing required environment variables and cannot start. Copy .env.example to .env and fill in the values, then restart the application.",
     };
+    return cachedError;
   }
 
   const pool = new Pool({
@@ -36,8 +41,9 @@ export async function getStartupError(): Promise<HealthError | null> {
     const client = await pool.connect();
     await client.query("SELECT 1");
     client.release();
+    cachedError = null;
   } catch {
-    return {
+    cachedError = {
       type: "server",
       title: "Server Error",
       message:
@@ -47,5 +53,5 @@ export async function getStartupError(): Promise<HealthError | null> {
     await pool.end();
   }
 
-  return null;
+  return cachedError;
 }
