@@ -139,14 +139,21 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (application.email) {
-      sendStatusEmail({
-        to: application.email,
-        applicantName: application.fullName || application.user.name || "Applicant",
-        jobTitle: application.job.title,
-        status: newStatus,
-        customSubject,
-        customBody,
-      }).catch(() => {});
+      const autoSendSetting = await prisma.setting.findUnique({
+        where: { key: "auto_send_emails" },
+      });
+      const autoSend = autoSendSetting?.value !== "false";
+
+      if (autoSend || customSubject || customBody) {
+        sendStatusEmail({
+          to: application.email,
+          applicantName: application.fullName || application.user.name || "Applicant",
+          jobTitle: application.job.title,
+          status: newStatus,
+          customSubject,
+          customBody,
+        }).catch((err) => console.error("[Email] Send failed:", err));
+      }
     }
 
     return NextResponse.json(application);

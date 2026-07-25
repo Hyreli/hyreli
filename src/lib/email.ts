@@ -174,8 +174,10 @@ export async function sendStatusEmail(params: {
       html: template.html,
       text: template.text,
     });
+    console.log(`[Email] Sent to ${params.to} with status ${params.status}`);
     return true;
-  } catch {
+  } catch (err) {
+    console.error("[Email] Failed to send:", err);
     return false;
   }
 }

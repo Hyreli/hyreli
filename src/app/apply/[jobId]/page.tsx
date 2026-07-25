@@ -19,9 +19,7 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 
 const applicationSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Please enter a valid email address"),
-  portfolioUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   coverLetter: z.string().optional(),
 });
 
@@ -121,9 +119,9 @@ export default function ApplyPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobId,
-          fullName: data.fullName,
+          fullName: session?.user?.name || "Applicant",
           email: data.email,
-          portfolioUrl: data.portfolioUrl || null,
+          portfolioUrl: null,
           coverLetter: data.coverLetter || null,
           customAnswers,
         }),
@@ -165,20 +163,6 @@ export default function ApplyPage({
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name *</Label>
-              <Input
-                id="fullName"
-                placeholder="John Doe"
-                {...register("fullName")}
-              />
-              {errors.fullName && (
-                <p className="text-sm text-destructive">
-                  {errors.fullName.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
@@ -189,20 +173,6 @@ export default function ApplyPage({
               {errors.email && (
                 <p className="text-sm text-destructive">
                   {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="portfolioUrl">Portfolio URL</Label>
-              <Input
-                id="portfolioUrl"
-                placeholder="https://yoursite.com"
-                {...register("portfolioUrl")}
-              />
-              {errors.portfolioUrl && (
-                <p className="text-sm text-destructive">
-                  {errors.portfolioUrl.message}
                 </p>
               )}
             </div>
@@ -248,7 +218,27 @@ export default function ApplyPage({
                           </label>
                         ))}
                       </div>
-                    ) : q.type === "multiple-choice" || q.type === "dropdown" ? (
+                    ) : q.type === "multiple-choice" ? (
+                      <div className="flex flex-col gap-2">
+                        {q.options?.map((opt: string, i: number) => (
+                          <label key={i} className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="radio"
+                              name={q.id}
+                              className="rounded-full border-input"
+                              checked={customAnswers[q.id] === opt}
+                              onChange={() =>
+                                setCustomAnswers((prev) => ({
+                                  ...prev,
+                                  [q.id]: opt,
+                                }))
+                              }
+                            />
+                            {opt}
+                          </label>
+                        ))}
+                      </div>
+                    ) : q.type === "dropdown" ? (
                       <select
                         className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         value={customAnswers[q.id] || ""}
