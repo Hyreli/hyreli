@@ -59,6 +59,33 @@ Required variables:
 | `DISCORD_CLIENT_SECRET` | From Discord Developer Portal |
 | `OWNER_DISCORD_ID` | Your Discord user ID (for admin access) |
 
+#### Optional: SMTP Email Notifications
+
+To enable automatic email notifications when application status changes, add these variables:
+
+| Variable | Description | Example |
+|---|---|---|
+| `SMTP_HOST` | SMTP server hostname | `smtp.zoho.com` |
+| `SMTP_PORT` | SMTP port (465 for SSL, 587 for TLS) | `465` |
+| `SMTP_USER` | Your email address | `you@yourdomain.com` |
+| `SMTP_PASS` | Your email password or app password | |
+| `SMTP_FROM_NAME` | Sender name shown in emails | `Hyreli` |
+| `SMTP_FROM_EMAIL` | Sender email address | `careers@yourdomain.com` |
+
+> If SMTP is not configured, the app works normally — emails are simply not sent.
+
+**Zoho Setup:**
+1. Enable **SMTP Access** in Zoho Mail → Settings → Mail Accounts
+2. Generate an **App Password** if using 2FA
+3. Use `smtp.zoho.com` as host and `465` as port
+
+**Custom Email Templates:**
+When sending a custom email from the dashboard, you can use these variables in the subject or body:
+- `{{applicantName}}` — Applicant's full name
+- `{{jobTitle}}` — Job title
+- `{{companyName}}` — Your configured sender name
+- `{{email}}` — Applicant's email address
+
 ### 4. Set up Discord OAuth
 
 1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
