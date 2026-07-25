@@ -5,8 +5,9 @@ import { Providers } from "@/components/providers";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
 import { CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
-import { isConfigured } from "@/lib/configured";
-import NotConfiguredPage from "@/app/not-configured/page";
+import { getStartupError } from "@/lib/health";
+import InvalidPage from "@/app/invalid/page";
+import ServerErrorPage from "@/app/server-error/page";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,11 +24,13 @@ export const metadata: Metadata = {
     "A beautiful, open-source careers platform. Self-hostable, Discord-powered, and developer-friendly.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const error = await getStartupError();
+
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <head>
@@ -41,7 +44,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col antialiased" suppressHydrationWarning>
         <ThemeProvider>
-          {isConfigured() ? (
+          {!error ? (
             <Providers>
               <TooltipProvider>
                 <Toaster
@@ -63,8 +66,10 @@ export default function RootLayout({
                 {children}
               </TooltipProvider>
             </Providers>
+          ) : error.type === "server" ? (
+            <ServerErrorPage />
           ) : (
-            <NotConfiguredPage />
+            <InvalidPage error={error} />
           )}
         </ThemeProvider>
       </body>
