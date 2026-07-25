@@ -17,6 +17,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   applications  Application[]
+  comments      Comment[]
   createdAt     DateTime      @default(now())
 
   @@map("users")
@@ -90,11 +91,12 @@ model Job {
 }
 
 model CustomQuestion {
-  id     String @id @default(cuid())
-  jobId  String
+  id       String @id @default(cuid())
+  jobId    String
   question String
-  type   String @default("text")
-  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  type     String @default("text")
+  options  String[] @default([])
+  job      Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@map("custom_questions")
 }
@@ -105,7 +107,8 @@ model Application {
   user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobId         String
   job           Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  githubUsername String?
+  fullName      String?
+  email         String?
   portfolioUrl  String?
   resumeUrl     String?
   coverLetter   String?            @db.Text
@@ -113,6 +116,7 @@ model Application {
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   answers       ApplicationAnswer[]
+  comments      Comment[]
 
   @@unique([userId, jobId])
   @@map("applications")
@@ -126,6 +130,18 @@ model ApplicationAnswer {
   answer        String      @db.Text
 
   @@map("application_answers")
+}
+
+model Comment {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content       String      @db.Text
+  createdAt     DateTime    @default(now())
+
+  @@map("comments")
 }
 
 model Organization {

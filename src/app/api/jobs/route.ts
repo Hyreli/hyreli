@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
               create: customQuestions.map((q: { question: string; type: string; required: boolean; options: string[] }) => ({
                 question: q.question,
                 type: q.type || "text",
+                options: q.options || [],
               })),
             }
           : undefined,

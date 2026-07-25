@@ -19,7 +19,8 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 
 const applicationSchema = z.object({
-  githubUsername: z.string().min(1, "GitHub username is required"),
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Please enter a valid email address"),
   portfolioUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   coverLetter: z.string().optional(),
 });
@@ -30,6 +31,7 @@ interface CustomQuestion {
   id: string;
   question: string;
   type: string;
+  options?: string[];
 }
 
 interface Job {
@@ -119,7 +121,8 @@ export default function ApplyPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobId,
-          githubUsername: data.githubUsername,
+          fullName: data.fullName,
+          email: data.email,
           portfolioUrl: data.portfolioUrl || null,
           coverLetter: data.coverLetter || null,
           customAnswers,
@@ -162,15 +165,30 @@ export default function ApplyPage({
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="githubUsername">GitHub Username *</Label>
+              <Label htmlFor="fullName">Full Name *</Label>
               <Input
-                id="githubUsername"
-                placeholder="octocat"
-                {...register("githubUsername")}
+                id="fullName"
+                placeholder="John Doe"
+                {...register("fullName")}
               />
-              {errors.githubUsername && (
+              {errors.fullName && (
                 <p className="text-sm text-destructive">
-                  {errors.githubUsername.message}
+                  {errors.fullName.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
                 </p>
               )}
             </div>
@@ -205,16 +223,72 @@ export default function ApplyPage({
                 {job.customQuestions.map((q) => (
                   <div key={q.id} className="space-y-2">
                     <Label>{q.question}</Label>
-                    <Textarea
-                      rows={3}
-                      value={customAnswers[q.id] || ""}
-                      onChange={(e) =>
-                        setCustomAnswers((prev) => ({
-                          ...prev,
-                          [q.id]: e.target.value,
-                        }))
-                      }
-                    />
+                    {q.type === "checkboxes" ? (
+                      <div className="flex flex-col gap-2">
+                        {q.options?.map((opt: string, i: number) => (
+                          <label key={i} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              className="rounded"
+                              checked={(customAnswers[q.id] || "").includes(opt)}
+                              onChange={(e) => {
+                                const current = customAnswers[q.id]
+                                  ? customAnswers[q.id].split(", ")
+                                  : [];
+                                const updated = e.target.checked
+                                  ? [...current, opt]
+                                  : current.filter((v: string) => v !== opt);
+                                setCustomAnswers((prev) => ({
+                                  ...prev,
+                                  [q.id]: updated.join(", "),
+                                }));
+                              }}
+                            />
+                            {opt}
+                          </label>
+                        ))}
+                      </div>
+                    ) : q.type === "multiple-choice" || q.type === "dropdown" ? (
+                      <select
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        value={customAnswers[q.id] || ""}
+                        onChange={(e) =>
+                          setCustomAnswers((prev) => ({
+                            ...prev,
+                            [q.id]: e.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">Select an option...</option>
+                        {q.options?.map((opt: string, i: number) => (
+                          <option key={i} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : q.type === "textarea" ? (
+                      <Textarea
+                        rows={3}
+                        value={customAnswers[q.id] || ""}
+                        onChange={(e) =>
+                          setCustomAnswers((prev) => ({
+                            ...prev,
+                            [q.id]: e.target.value,
+                          }))
+                        }
+                      />
+                    ) : (
+                      <Input
+                        type={q.type === "date" ? "date" : q.type === "email" ? "email" : q.type === "url" ? "url" : q.type === "number" ? "number" : q.type === "phone" ? "tel" : "text"}
+                        value={customAnswers[q.id] || ""}
+                        onChange={(e) =>
+                          setCustomAnswers((prev) => ({
+                            ...prev,
+                            [q.id]: e.target.value,
+                          }))
+                        }
+                      />
+                    )}
                   </div>
                 ))}
               </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { sendStatusEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { jobId, githubUsername, portfolioUrl, coverLetter, customAnswers } = body;
+    const { jobId, fullName, email, portfolioUrl, coverLetter, customAnswers } = body;
 
     if (!jobId) {
       return NextResponse.json({ error: "Job ID is required" }, { status: 400 });
@@ -36,7 +37,8 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         jobId,
-        githubUsername,
+        fullName,
+        email,
         portfolioUrl: portfolioUrl || null,
         coverLetter: coverLetter || null,
         answers: customAnswers
@@ -83,7 +85,8 @@ export async function GET(request: NextRequest) {
     if (jobId) where.jobId = jobId;
     if (search) {
       where.OR = [
-        { githubUsername: { contains: search, mode: "insensitive" } },
+        { fullName: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
         { user: { name: { contains: search, mode: "insensitive" } } },
       ];
     }
@@ -93,7 +96,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { id: true, name: true, image: true } },
-        job: { select: { id: true, title: true, slug: true } },
+        job: { select: { id: true, title: true, slug: true, customQuestions: true } },
         answers: { include: { application: false } },
       },
     });
@@ -120,7 +123,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, status: newStatus } = body;
+    const { id, status: newStatus, customSubject, customBody } = body;
 
     if (!id || !newStatus) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -129,7 +132,22 @@ export async function PATCH(request: NextRequest) {
     const application = await prisma.application.update({
       where: { id },
       data: { status: newStatus },
+      include: {
+        user: { select: { name: true } },
+        job: { select: { title: true } },
+      },
     });
+
+    if (application.email) {
+      sendStatusEmail({
+        to: application.email,
+        applicantName: application.fullName || application.user.name || "Applicant",
+        jobTitle: application.job.title,
+        status: newStatus,
+        customSubject,
+        customBody,
+      }).catch(() => {});
+    }
 
     return NextResponse.json(application);
   } catch {

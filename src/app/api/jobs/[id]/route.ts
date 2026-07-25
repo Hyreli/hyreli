@@ -57,10 +57,11 @@ export async function PUT(
       await prisma.customQuestion.deleteMany({ where: { jobId: id } });
       if (customQuestions.length > 0) {
         await prisma.customQuestion.createMany({
-          data: customQuestions.map((q: { question: string; type?: string }) => ({
+          data: customQuestions.map((q: { question: string; type?: string; options?: string[] }) => ({
             jobId: id,
             question: q.question,
             type: q.type || "text",
+            options: q.options || [],
           })),
         });
       }

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -21,8 +22,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/utils";
-import { Search, ExternalLink, FileText } from "lucide-react";
+import { Search, FileText, Send, Mail, Loader2 } from "lucide-react";
+
+interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: { id: string; name: string | null; image: string | null };
+}
 
 const statusOptions = [
   { value: "all", label: "All" },
@@ -44,13 +53,14 @@ const statusColors: Record<string, string> = {
 interface Application {
   id: string;
   status: string;
-  githubUsername: string | null;
+  fullName: string | null;
+  email: string | null;
   portfolioUrl: string | null;
   coverLetter: string | null;
   resumeUrl: string | null;
   createdAt: string;
   user: { id: string; name: string | null; image: string | null };
-  job: { id: string; title: string; slug: string };
+  job: { id: string; title: string; slug: string; customQuestions?: Array<{ id: string; question: string }> };
   answers: Array<{ questionId: string; answer: string }>;
 }
 
@@ -62,6 +72,14 @@ export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [sendingComment, setSendingComment] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     if (authStatus === "unauthenticated") router.push("/");
@@ -112,6 +130,70 @@ export default function ApplicationsPage() {
     }
   };
 
+  const sendCustomEmail = async () => {
+    if (!selectedApp || !emailSubject.trim() || !emailBody.trim()) return;
+    setSendingEmail(true);
+    try {
+      const res = await fetch("/api/applications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedApp.id,
+          status: selectedApp.status,
+          customSubject: emailSubject,
+          customBody: emailBody,
+        }),
+      });
+      if (res.ok) {
+        setShowEmailModal(false);
+        setEmailSubject("");
+        setEmailBody("");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedApp) {
+      setComments([]);
+      setNewComment("");
+      return;
+    }
+    setLoadingComments(true);
+    fetch(`/api/applications/${selectedApp.id}/comments`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setComments(data))
+      .catch(() => setComments([]))
+      .finally(() => setLoadingComments(false));
+  }, [selectedApp]);
+
+  const addComment = async () => {
+    if (!selectedApp || !newComment.trim()) return;
+    setSendingComment(true);
+    try {
+      const res = await fetch(
+        `/api/applications/${selectedApp.id}/comments`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: newComment }),
+        }
+      );
+      if (res.ok) {
+        const comment = await res.json();
+        setComments((prev) => [...prev, comment]);
+        setNewComment("");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSendingComment(false);
+    }
+  };
+
   if (authStatus === "loading") return null;
 
   return (
@@ -125,7 +207,7 @@ export default function ApplicationsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name or GitHub..."
+            placeholder="Search by name or email..."
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -161,7 +243,7 @@ export default function ApplicationsPage() {
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium">Applicant</th>
                   <th className="px-4 py-3 text-left font-medium">Job</th>
-                  <th className="px-4 py-3 text-left font-medium">GitHub</th>
+                  <th className="px-4 py-3 text-left font-medium">Email</th>
                   <th className="px-4 py-3 text-left font-medium">Applied</th>
                   <th className="px-4 py-3 text-left font-medium">Status</th>
                   <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -185,19 +267,7 @@ export default function ApplicationsPage() {
                       {app.job.title}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {app.githubUsername ? (
-                        <a
-                          href={`https://github.com/${app.githubUsername}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 hover:text-foreground"
-                        >
-                          {app.githubUsername}
-                          <ExternalLink className="size-3" />
-                        </a>
-                      ) : (
-                        "—"
-                      )}
+                      {app.email || "—"}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(app.createdAt)}
@@ -257,14 +327,13 @@ export default function ApplicationsPage() {
 
               <div className="grid gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">GitHub:</span>{" "}
-                  {selectedApp.githubUsername ? (
+                  <span className="text-muted-foreground">Email:</span>{" "}
+                  {selectedApp.email ? (
                     <a
-                      href={`https://github.com/${selectedApp.githubUsername}`}
-                      target="_blank"
+                      href={`mailto:${selectedApp.email}`}
                       className="hover:text-primary"
                     >
-                      {selectedApp.githubUsername}
+                      {selectedApp.email}
                     </a>
                   ) : (
                     "Not provided"
@@ -299,6 +368,27 @@ export default function ApplicationsPage() {
                 </div>
               )}
 
+              {selectedApp.answers && selectedApp.answers.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Custom Answers</p>
+                  <div className="space-y-3">
+                    {selectedApp.answers.map((ans, i) => {
+                      const question = selectedApp.job.customQuestions?.find(
+                        (q) => q.id === ans.questionId
+                      );
+                      return (
+                        <div key={i} className="rounded-lg bg-muted p-4 text-sm">
+                          <p className="font-medium mb-1">
+                            {question?.question || "Unknown question"}
+                          </p>
+                          <p className="whitespace-pre-wrap">{ans.answer}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <p className="text-sm font-medium mb-2">Update Status</p>
                 <div className="flex flex-wrap gap-2">
@@ -316,8 +406,131 @@ export default function ApplicationsPage() {
                   ))}
                 </div>
               </div>
+
+              {selectedApp.email && (
+                <div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => {
+                      setEmailSubject(`Update on your application - ${selectedApp.job.title}`);
+                      setEmailBody(`Hi ${selectedApp.fullName || "there"},\n\n`);
+                      setShowEmailModal(true);
+                    }}
+                  >
+                    <Mail className="size-3.5" />
+                    Send Email
+                  </Button>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm font-medium mb-2">
+                  Comments ({comments.length})
+                </p>
+                <div className="space-y-3 mb-3">
+                  {loadingComments ? (
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                  ) : comments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No comments yet.</p>
+                  ) : (
+                    comments.map((c) => (
+                      <div key={c.id} className="rounded-lg bg-muted p-3 text-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Avatar className="size-5">
+                            <AvatarImage src={c.author.image || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {c.author.name?.charAt(0) || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-xs">
+                            {c.author.name || "Unknown"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(c.createdAt)}
+                          </span>
+                        </div>
+                        <p className="whitespace-pre-wrap">{c.content}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        addComment();
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={addComment}
+                    disabled={sendingComment || !newComment.trim()}
+                  >
+                    <Send className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              To: {selectedApp?.email}
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="emailSubject">Subject</Label>
+              <Input
+                id="emailSubject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="emailBody">Body</Label>
+              <Textarea
+                id="emailBody"
+                rows={8}
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Variables: {"{{"} applicantName {"}}"}, {"{{"} jobTitle {"}}"}, {"{{"} companyName {"}}"}, {"{{"} email {"}}"}
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowEmailModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={sendCustomEmail}
+                disabled={sendingEmail || !emailSubject.trim() || !emailBody.trim()}
+              >
+                {sendingEmail ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
+                Send
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
