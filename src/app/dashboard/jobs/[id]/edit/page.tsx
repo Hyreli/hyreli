@@ -159,14 +159,14 @@ export default function EditJobPage({
       });
 
       if (res.ok) {
-        toast("Job updated successfully", "success");
+        toast.success("Job updated successfully");
         router.push("/dashboard/jobs");
       } else {
         const err = await res.json();
-        toast(err.error || "Failed to update job", "error");
+        toast.error(err.error || "Failed to update job");
       }
     } catch {
-      toast("Failed to update job", "error");
+      toast.error("Failed to update job");
     } finally {
       setIsSubmitting(false);
     }
@@ -188,10 +188,10 @@ export default function EditJobPage({
         setJob((prev) =>
           prev ? { ...prev, isPublished: publish, isDraft: !publish } : prev
         );
-        toast(publish ? "Job published" : "Applications closed", "success");
+        toast.success(publish ? "Job published" : "Applications closed");
       }
     } catch {
-      toast("Failed to update job", "error");
+      toast.error("Failed to update job");
     } finally {
       setIsSubmitting(false);
     }
@@ -336,6 +336,7 @@ export default function EditJobPage({
                         <Select
                           value={q.type}
                           onValueChange={(v) => {
+                            if (!v) return;
                             updateQuestion(i, "type", v);
                             if (!needsOptions(v)) {
                               updateQuestion(i, "options", []);

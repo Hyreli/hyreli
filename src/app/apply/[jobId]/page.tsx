@@ -130,10 +130,10 @@ export default function ApplyPage({
         router.push("/success");
       } else {
         const err = await res.json();
-        toast(err.error || "Failed to submit application", "error");
+        toast.error(err.error || "Failed to submit application");
       }
     } catch {
-      toast("Failed to submit application", "error");
+      toast.error("Failed to submit application");
     } finally {
       setIsSubmitting(false);
     }

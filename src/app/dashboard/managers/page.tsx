@@ -68,17 +68,17 @@ export default function ManagersPage() {
         body: JSON.stringify({ discordId: discordId.trim() }),
       });
       if (res.ok) {
-        toast("Manager added successfully", "success");
+        toast.success("Manager added successfully");
         setDiscordId("");
         setDialogOpen(false);
         const listRes = await fetch("/api/managers");
         if (listRes.ok) setManagers(await listRes.json());
       } else {
         const err = await res.json();
-        toast(err.error || "Failed to add manager", "error");
+        toast.error(err.error || "Failed to add manager");
       }
     } catch {
-      toast("Failed to add manager", "error");
+      toast.error("Failed to add manager");
     } finally {
       setIsAdding(false);
     }
@@ -91,7 +91,7 @@ export default function ManagersPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        toast("Manager removed", "success");
+        toast.success("Manager removed");
         const listRes = await fetch("/api/managers");
         if (listRes.ok) setManagers(await listRes.json());
       }

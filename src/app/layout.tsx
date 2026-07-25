@@ -5,6 +5,8 @@ import { Providers } from "@/components/providers";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
 import { CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { isConfigured } from "@/lib/configured";
+import NotConfiguredPage from "@/app/not-configured/page";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,27 +41,31 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col antialiased" suppressHydrationWarning>
         <ThemeProvider>
-          <Providers>
-            <TooltipProvider>
-              <Toaster
-                position="bottom-right"
-                icons={{
-                  success: <CheckCircle2 className="size-4 text-emerald-500" />,
-                  error: <AlertCircle className="size-4 text-red-500" />,
-                  warning: <AlertTriangle className="size-4 text-amber-500" />,
-                  info: <Info className="size-4 text-blue-500" />,
-                }}
-                toastOptions={{
-                  style: {
-                    background: "#1c1c1c",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "#fff",
-                  },
-                }}
-              />
-              {children}
-            </TooltipProvider>
-          </Providers>
+          {isConfigured() ? (
+            <Providers>
+              <TooltipProvider>
+                <Toaster
+                  position="bottom-right"
+                  icons={{
+                    success: <CheckCircle2 className="size-4 text-emerald-500" />,
+                    error: <AlertCircle className="size-4 text-red-500" />,
+                    warning: <AlertTriangle className="size-4 text-amber-500" />,
+                    info: <Info className="size-4 text-blue-500" />,
+                  }}
+                  toastOptions={{
+                    style: {
+                      background: "#1c1c1c",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                    },
+                  }}
+                />
+                {children}
+              </TooltipProvider>
+            </Providers>
+          ) : (
+            <NotConfiguredPage />
+          )}
         </ThemeProvider>
       </body>
     </html>

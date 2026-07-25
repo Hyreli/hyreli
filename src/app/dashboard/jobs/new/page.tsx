@@ -130,14 +130,14 @@ export default function NewJobPage() {
       });
 
       if (res.ok) {
-        toast("Job created successfully", "success");
+        toast.success("Job created successfully");
         router.push("/dashboard/jobs");
       } else {
         const err = await res.json();
-        toast(err.error || "Failed to create job", "error");
+        toast.error(err.error || "Failed to create job");
       }
     } catch {
-      toast("Failed to create job", "error");
+      toast.error("Failed to create job");
     } finally {
       setIsSubmitting(false);
     }
@@ -159,14 +159,14 @@ export default function NewJobPage() {
       });
 
       if (res.ok) {
-        toast("Job published successfully", "success");
+        toast.success("Job published successfully");
         router.push("/dashboard/jobs");
       } else {
         const err = await res.json();
-        toast(err.error || "Failed to publish job", "error");
+        toast.error(err.error || "Failed to publish job");
       }
     } catch {
-      toast("Failed to publish job", "error");
+      toast.error("Failed to publish job");
     } finally {
       setIsSubmitting(false);
     }
@@ -286,6 +286,7 @@ export default function NewJobPage() {
                         <Select
                           value={q.type}
                           onValueChange={(v) => {
+                            if (!v) return;
                             updateQuestion(i, "type", v);
                             if (!needsOptions(v)) {
                               updateQuestion(i, "options", []);
