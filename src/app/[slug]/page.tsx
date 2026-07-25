@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -44,7 +45,7 @@ export default async function JobPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const job = await getJob(slug);
+  const [job, session] = await Promise.all([getJob(slug), auth()]);
 
   if (!job) notFound();
 
@@ -125,9 +126,11 @@ export default async function JobPage({
                 Apply for this position
               </Button>
             </Link>
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              You&apos;ll need to sign in with Discord to apply.
-            </p>
+            {!session && (
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                You&apos;ll need to sign in with Discord to apply.
+              </p>
+            )}
           </div>
         </div>
       </main>
